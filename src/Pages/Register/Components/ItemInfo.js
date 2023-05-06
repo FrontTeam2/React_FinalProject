@@ -15,6 +15,7 @@ import { FORM_TYPE } from '../../../Consts/form.type'
 import Modal from '../../../Components/Modal/Modal'
 import ViewMap from './ViewMap'
 import DaumPostCodeAddress from '../../../Components/DaumPostCodeAddress/DaumPostCodeAddress'
+import { ModalClose_icon } from '../../../Components/Icons/Icons'
 
 function ItemInfo({ imageList }) {
 	const {
@@ -49,7 +50,6 @@ function ItemInfo({ imageList }) {
 		if (data.category == '0') {
 			price = 0
 		}
-		if (!imageList) return alert('하나 이상 이미지 등록하세요.')
 
 		let totaldata = {
 			title: data.title,
@@ -64,7 +64,7 @@ function ItemInfo({ imageList }) {
 
 	const checkedCategory = e => {
 		const checkedNum = e.target.value
-		if (checkedNum === '0') {
+		if (checkedNum === '1') {
 			setIntPrice(0)
 		}
 		setCategoryCheckedNum(checkedNum)
@@ -76,15 +76,16 @@ function ItemInfo({ imageList }) {
 	}
 
 	const onkeyDown = e => {
+		const hashTag = e.target.value
+
 		if (e.nativeEvent.isComposing) return
 		if (e.key === 'Enter') {
 			e.preventDefault()
-			setHashReset('')
+
 			if (e.target.value.trim().length === 0) return
-			setHashArr(prev => [
-				...prev,
-				{ value: e.target.value, id: Math.floor(Math.random() * 100000) },
-			])
+
+			setHashArr(prev => [...prev, hashTag])
+			setHashReset('')
 		}
 	}
 
@@ -116,8 +117,10 @@ function ItemInfo({ imageList }) {
 				<S.TagBox>
 					{hashArr.map((hash, idx) => (
 						<S.TagItem key={idx}>
-							<S.TagText>{hash.value}</S.TagText>
-							<DelButton onClick={() => deleteTagItem(hash)}>X</DelButton>
+							<S.TagText>{hash}</S.TagText>
+							<DelButton onClick={() => deleteTagItem(hash)}>
+								<ModalClose_icon size={16} />
+							</DelButton>
 						</S.TagItem>
 					))}
 					<S.StyledInput
@@ -149,24 +152,26 @@ function ItemInfo({ imageList }) {
 								type="radio"
 								name="category"
 								value={'0'}
+								id="0"
 								{...register('category', {
 									required: '무료나눔 혹은 중고상품 선택해주세요 ',
 								})}
 								onClick={checkedCategory}
 							/>
-							<S.Label>무료나눔</S.Label>
+							<S.Label htmlFor="0">중고거래</S.Label>
 						</S.InputRadioWrap>
 						<S.InputRadioWrap>
 							<S.Radio
 								type="radio"
 								name="category"
 								value={'1'}
+								id="1"
 								{...register('category', {
 									required: '무료나눔 혹은 중고상품 선택해주세요 ',
 								})}
 								onClick={checkedCategory}
 							/>
-							<S.Label>중고거래</S.Label>
+							<S.Label htmlFor="1">무료거래</S.Label>
 						</S.InputRadioWrap>
 					</S.InputValueCheckBox>
 					{errors.category && (
@@ -181,16 +186,16 @@ function ItemInfo({ imageList }) {
 					<S.InputValuePrice>
 						<Input
 							{...register('price', {
-								required: categoryCheckedNum !== '0' && '가격을 입력해주세요',
+								required: categoryCheckedNum !== '1' && '가격을 입력해주세요',
 								onChange: e => {
 									priceToString(e)
 								},
 							})}
-							disabled={categoryCheckedNum === '0' ? true : false}
+							disabled={categoryCheckedNum === '1' ? true : false}
 							value={intPrice}
 						/>
 
-						{errors.price && (
+						{errors.price && categoryCheckedNum !== '1' && (
 							<S.Error>
 								<AlertText type={'error'}>{errors.price.message}</AlertText>
 							</S.Error>
